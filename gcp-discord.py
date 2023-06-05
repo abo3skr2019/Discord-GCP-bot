@@ -1,53 +1,63 @@
+
 import discord
-from discord import Intents
+import asyncio
 from google.cloud import compute_v1
 from CloudFlare import CloudFlare
 
-bot_TOKEN = 'Discord bot token'
-PROJECT_ID = 'GCP PROJECT_ID'
-ZONE = 'GCP_ZONE'
-INSTANCE_NAME = 'instance Name'
-CLOUDFLARE_EMAIL = 'example@gmail.com'
-CLOUDFLARE_API_TOKEN = 'TOken'
-CLOUDFLARE_ZONE_ID = 'Zone ID'
-CLOUDFLARE_RECORD_NAME = 'Record-Name=aka-Prefix'
+bot_TOKEN = 'x'
+PROJECT_ID = 'x'
 
-intents = Intents.default()
+ZONE = 'xa'
+INSTANCE_NAME = 'x-1'
+CLOUDFLARE_EMAIL = 'x@gmail.com'
+CLOUDFLARE_API_TOKEN = 'x'
+CLOUDFLARE_ZONE_ID = 'x'
+CLOUDFLARE_RECORD_NAME = 'x'
+
+intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
-cloudflare = CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_API_TOKEN)
-compute_client = compute_v1.InstancesClient()
+bot = discord.Client(intents=intents)
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    print(f'We have logged in as {bot.user}')
 
-@client.event
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
-        return
+    if message.content.startswith('!gcpstart'):
+        await gcp_start_function(message.channel)
+    elif message.content.startswith('!gcpstop'):
+        await gcp_stop_function(message.channel)
 
-    if message.content == '!gcpstart':
-        start_instance()
-        await message.channel.send('GCP instance starting...')
+async def gcp_start_function(channel):
+    await channel.send('GCP instance starting...')
+    await asyncio.sleep(1)  # Do any additional processing if required
+    start_instance()
+    await channel.send('GCP instance started.')
 
-    elif message.content == '!gcpstop':
-        stop_instance()
-        await message.channel.send('GCP instance stopped.')
+async def gcp_stop_function(channel):
+    await channel.send('GCP instance stopping...')
+    await asyncio.sleep(1)  # Do any additional processing if required
+    stop_instance()
+    await channel.send('GCP instance stopped.')
 
 def start_instance():
+    compute_client = compute_v1.InstancesClient()
     request = compute_client.start(project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME).result()
-    instance = compute_client.get(project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME).result()
-    external_ip = instance.network_interfaces[0].access_configs[0].nat_ip
+    instance = compute_client.get(project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME)
+    external_ip = instance.network_interfaces[0].access_configs[0].nat_i_p
     update_cloudflare_ip(external_ip)
+    print('GCP instance starting...')
 
 def stop_instance():
+    compute_client = compute_v1.InstancesClient()
     request = compute_client.stop(project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME).result()
+    print('GCP instance stopped.')
 
 def update_cloudflare_ip(ip_address):
-    cf = CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_API_TOKEN)
-    dns_records = cf.zones.dns_records.get(CLOUDFLARE_ZONE_ID)
+    cloudflare = CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_API_TOKEN)
+    dns_records = cloudflare.zones.dns_records.get(CLOUDFLARE_ZONE_ID)
     record_id = None
 
     for record in dns_records:
@@ -56,7 +66,7 @@ def update_cloudflare_ip(ip_address):
             break
 
     if record_id:
-        cf.zones.dns_records.put(CLOUDFLARE_ZONE_ID, record_id, data={'content': ip_address})
+        cloudflare.zones.dns_records.put(CLOUDFLARE_ZONE_ID, record_id, data={'content': ip_address})
         print(f'Updated Cloudflare DNS record with IP: {ip_address}')
 
-client.run(bot_TOKEN)
+bot.run(bot_TOKEN)
