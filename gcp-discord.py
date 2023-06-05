@@ -4,6 +4,7 @@ import asyncio
 from google.cloud import compute_v1
 from CloudFlare import CloudFlare
 
+#discord bot token
 bot_TOKEN = 'x'
 PROJECT_ID = 'x'
 
