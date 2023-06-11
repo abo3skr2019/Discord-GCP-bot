@@ -7,7 +7,7 @@ from CloudFlare import CloudFlare
 #discord bot token
 bot_TOKEN = 'x'
 PROJECT_ID = 'x'
-
+#CFZone
 ZONE = 'xa'
 INSTANCE_NAME = 'x-1'
 CLOUDFLARE_EMAIL = 'x@gmail.com'
