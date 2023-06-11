@@ -59,15 +59,19 @@ def stop_instance():
 def update_cloudflare_ip(ip_address):
     cloudflare = CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_API_TOKEN)
     dns_records = cloudflare.zones.dns_records.get(CLOUDFLARE_ZONE_ID)
-    record_id = None
 
     for record in dns_records:
         if record['name'] == CLOUDFLARE_RECORD_NAME:
             record_id = record['id']
+            data = {
+                'type': record['type'],
+                'name': record['name'],
+                'content': ip_address,
+                'ttl': record['ttl'],
+                'proxied': record['proxied']
+            }
+            cloudflare.zones.dns_records.put(CLOUDFLARE_ZONE_ID, record_id, data=data)
+            print(f'Updated Cloudflare DNS record with IP: {ip_address}')
             break
-
-    if record_id:
-        cloudflare.zones.dns_records.put(CLOUDFLARE_ZONE_ID, record_id, data={'content': ip_address})
-        print(f'Updated Cloudflare DNS record with IP: {ip_address}')
 
 bot.run(bot_TOKEN)
