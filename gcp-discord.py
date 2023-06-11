@@ -51,10 +51,12 @@ def start_instance():
     update_cloudflare_ip(external_ip)
     print('GCP instance starting...')
 
-def stop_instance():
+async def stop_instance():
     compute_client = compute_v1.InstancesClient()
-    request = compute_client.stop(project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME).result()
+    request = compute_client.stop(project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME)
+    await request
     print('GCP instance stopped.')
+
 
 def update_cloudflare_ip(ip_address):
     cloudflare = CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_API_TOKEN)
